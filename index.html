@@ -158,11 +158,11 @@
                 </nav>
                 
                 <!-- Mobile Menu Button -->
-                <button id="mobile-menu-btn" class="md:hidden glass p-2 rounded-lg">
+                <button id="mobile-menu-btn" class="md:hidden glass p-2 rounded-lg hover:scale-105 transition-transform duration-200">
                     <div class="w-6 h-6 flex flex-col justify-center items-center">
-                        <span class="hamburger-line w-5 h-0.5 bg-white mb-1 transition-all duration-300"></span>
-                        <span class="hamburger-line w-5 h-0.5 bg-white mb-1 transition-all duration-300"></span>
-                        <span class="hamburger-line w-5 h-0.5 bg-white transition-all duration-300"></span>
+                        <span class="hamburger-line w-5 h-0.5 bg-white mb-1 transition-all duration-200"></span>
+                        <span class="hamburger-line w-5 h-0.5 bg-white mb-1 transition-all duration-200"></span>
+                        <span class="hamburger-line w-5 h-0.5 bg-white transition-all duration-200"></span>
                     </div>
                 </button>
                 
@@ -170,7 +170,7 @@
         </div>
         
         <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="md:hidden glass border-t border-white/10 transform -translate-y-full opacity-0 transition-all duration-300">
+        <div id="mobile-menu" class="md:hidden glass border-t border-white/10 opacity-0 overflow-hidden" style="max-height: 0px;">
             <div class="px-6 py-4 space-y-4">
                 <a href="#features" class="block nav-item text-gray-300 hover:text-white py-2">特色功能</a>
                 <a href="#vibe-showcase" class="block nav-item text-gray-300 hover:text-white py-2">Vibe 生成器</a>
@@ -451,6 +451,12 @@
 
         // 互動事件
         function initInteractions() {
+            // 手機菜單變數 (提升到函數開頭)
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            let isMenuOpen = false;
+            let closeMobileMenu;
+            
             // Header 導航平滑滾動
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
@@ -464,75 +470,86 @@
                         });
                         
                         // 關閉手機菜單
-                        if (typeof window.closeMobileMenu === 'function') {
-                            window.closeMobileMenu();
+                        if (mobileMenuBtn && mobileMenu && isMenuOpen && closeMobileMenu) {
+                            closeMobileMenu();
+                            isMenuOpen = false;
                         }
                     }
                 });
             });
             
             // 手機菜單切換
-            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-            const mobileMenu = document.getElementById('mobile-menu');
-            
             if (mobileMenuBtn && mobileMenu) {
-                let isMenuOpen = false;
                 
-                mobileMenuBtn.addEventListener('click', function() {
+                mobileMenuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // 立即的視覺反饋
+                    gsap.to(mobileMenuBtn, {
+                        duration: 0.1,
+                        scale: 0.95,
+                        ease: "power2.out",
+                        yoyo: true,
+                        repeat: 1
+                    });
+                    
                     toggleMobileMenu();
                 });
                 
                 function toggleMobileMenu() {
-                    const hamburgerLines = document.querySelectorAll('.hamburger-line');
-                    
                     if (!isMenuOpen) {
                         openMobileMenu();
+                        isMenuOpen = true;
                     } else {
                         closeMobileMenu();
+                        isMenuOpen = false;
                     }
-                    isMenuOpen = !isMenuOpen;
                 }
                 
                 function openMobileMenu() {
                     const hamburgerLines = document.querySelectorAll('.hamburger-line');
                     
-                    gsap.to(mobileMenu, {
-                        duration: 0.3,
-                        y: 0,
-                        opacity: 1,
-                        ease: "power2.out"
+                    // 立即設定菜單為可見狀態
+                    gsap.set(mobileMenu, { 
+                        maxHeight: 'auto',
+                        height: 'auto'
                     });
                     
-                    // 漢堡菜單動畫
+                    // 快速動畫顯示菜單
+                    gsap.to(mobileMenu, {
+                        duration: 0.25,
+                        maxHeight: '200px',
+                        opacity: 1,
+                        ease: "power3.out"
+                    });
+                    
+                    // 同步漢堡菜單動畫（更快速）
                     if (hamburgerLines.length >= 3) {
-                        gsap.to(hamburgerLines[0], { duration: 0.3, rotation: 45, y: 6 });
-                        gsap.to(hamburgerLines[1], { duration: 0.3, opacity: 0 });
-                        gsap.to(hamburgerLines[2], { duration: 0.3, rotation: -45, y: -6 });
+                        gsap.to(hamburgerLines[0], { duration: 0.2, rotation: 45, y: 6, ease: "power2.out" });
+                        gsap.to(hamburgerLines[1], { duration: 0.15, opacity: 0, ease: "power2.out" });
+                        gsap.to(hamburgerLines[2], { duration: 0.2, rotation: -45, y: -6, ease: "power2.out" });
                     }
                 }
                 
-                function closeMobileMenu() {
+                closeMobileMenu = function() {
                     const hamburgerLines = document.querySelectorAll('.hamburger-line');
                     
+                    // 快速動畫隱藏菜單
                     gsap.to(mobileMenu, {
-                        duration: 0.3,
-                        y: -20,
+                        duration: 0.2,
+                        maxHeight: '0px',
                         opacity: 0,
-                        ease: "power2.in"
+                        ease: "power3.in"
                     });
                     
-                    // 重置漢堡菜單
+                    // 同步重置漢堡菜單圖標（更快速）
                     if (hamburgerLines.length >= 3) {
-                        gsap.to(hamburgerLines[0], { duration: 0.3, rotation: 0, y: 0 });
-                        gsap.to(hamburgerLines[1], { duration: 0.3, opacity: 1 });
-                        gsap.to(hamburgerLines[2], { duration: 0.3, rotation: 0, y: 0 });
+                        gsap.to(hamburgerLines[0], { duration: 0.2, rotation: 0, y: 0, ease: "power2.out" });
+                        gsap.to(hamburgerLines[1], { duration: 0.15, opacity: 1, ease: "power2.out" });
+                        gsap.to(hamburgerLines[2], { duration: 0.2, rotation: 0, y: 0, ease: "power2.out" });
                     }
-                    
-                    isMenuOpen = false;
-                }
-                
-                // 將 closeMobileMenu 函數暴露到全局，供其他地方使用
-                window.closeMobileMenu = closeMobileMenu;
+                };
             }
             
             // Logo 點擊滑動到頂部
